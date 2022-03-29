@@ -1,5 +1,7 @@
+language: generic
+
 arch: 
-- arm64
+ - arm64
 
 # Define global variables
 env:
