@@ -1,0 +1,181 @@
+package main
+
+import "gl"
+import "glfw"
+
+//Structs
+
+type Window struct {
+	Height i32
+	Width i32
+}
+
+type Item struct {
+	x f32
+	y f32
+	z f32
+}
+
+type Wall struct {
+	y f32
+	z f32
+}
+
+//Funcs
+
+var prevTime f32
+var currTime f32
+var timeDelta f32
+func updateTiming() () {
+	// prevent 1st delta from being large, which would make moving objects teleport unpredictably 
+	if prevTime == 0.0 {
+		prevTime = f64.f32(glfw.GetTime())
+	}
+
+	currTime = f64.f32(glfw.GetTime())
+	timeDelta = currTime - prevTime
+	prevTime = currTime
+}
+
+
+func drawItem(box Item) () {
+	var t f32 // thickness 
+	t = 0.05
+
+	gl.Begin(gl.POLYGON)
+	gl.Color3f(1.0, 1.0, 0.0)
+	gl.Vertex3f(f32.add(box.x, t), box.y,   box.z)
+	gl.Vertex3f(f32.add(box.x, t), box.y-t, box.z)
+	gl.Vertex3f(box.x,             box.y-t, box.z)
+	gl.Vertex3f(box.x,             box.y,   box.z)
+	gl.End()
+}
+
+func drawBG () () {
+	gl.Begin(gl.POLYGON)
+	gl.Color3f(0.5, 0.7, 1.0)
+	gl.Vertex3f(-1.0, -1.0, 0.5)
+	gl.Vertex3f(-1.0, 1.0, 0.5)
+	gl.Vertex3f(1.0, 1.0, 0.5)
+	gl.Vertex3f(1.0, -1.0, 0.5)
+	gl.End()
+}
+
+func drawWall (w Wall, color f32) () {
+	gl.Begin(gl.POLYGON)
+	gl.Color3f(color, color, 1.0)
+	gl.Vertex3f(-1.0, f32.add(-1.0, w.y), w.z)
+	gl.Vertex3f(-1.0, -1.0, w.z)
+	gl.Vertex3f(1.0, -1.0, w.z)
+	gl.Vertex3f(1.0, f32.add(-1.0, w.y), w.z)
+	gl.End()
+}
+
+func moveMaybeTeleport (box Item, w Wall, color f32) (box Item) {
+	if f32.lteq(box.y, f32.add(-1.0, w.y)) {
+		box.y = 1.0
+	} else {
+		box.y = f32.sub(box.y, timeDelta / 2.0)
+	}
+
+	drawItem(box)
+	drawWall(w, color)
+}
+
+//Main Functions
+
+func settingsWindow (mw Window) () {
+	glfw.Init()
+
+	glfw.WindowHint(glfw.Resizable, glfw.False)
+
+	glfw.CreateWindow("window", mw.Width, mw.Height, "My Game")
+	glfw.MakeContextCurrent("window")
+}
+
+func startGame(mw Window) () {
+	settingsWindow(mw)
+	
+	gl.Init()
+	var program i32 
+	program = gl.CreateProgram()
+	gl.LinkProgram(program)
+
+	var obj1 Item
+	var obj2 Item
+	var obj3 Item
+	var obj4 Item
+
+	var w1 Wall
+	var w2 Wall
+	var w3 Wall
+	var w4 Wall
+	
+	obj1 = Item{
+		x: 0.75,
+		y: 1.0,
+		z: -0.4}
+
+	obj2 = Item{
+		x: 0.25,
+		y: 1.0,
+		z: -0.3}
+	
+	obj3 = Item{
+		x: -0.25,
+		y: 1.0,
+		z: -0.2}
+	
+	obj4 = Item{
+		x: -0.75,
+		y: 1.0,
+		z: -0.1}
+
+	w1 = Wall{
+		y: 0.1,
+		z: -0.35}
+
+	w2 = Wall{
+		y: 0.2,
+		z: -0.25}
+	
+	w3 = Wall{
+		y: 0.3,
+		z: -0.15}
+	
+	w4 = Wall{
+		y: 0.4,
+		z: -0.05}
+
+	//Main Loop
+	for bool.not(glfw.ShouldClose("window")) {
+		updateTiming()
+
+		gl.Clear(gl.COLOR_BUFFER_BIT)
+		gl.UseProgram(program)
+
+		//Background Drawing
+		gl.MatrixMode(gl.PROJECTION)
+		
+		gl.LoadIdentity()
+		gl.MatrixMode(gl.MODELVIEW)
+		drawBG()
+
+		obj4 = moveMaybeTeleport(obj4, w4, 0.2)
+		obj3 = moveMaybeTeleport(obj3, w3, 0.3)
+		obj2 = moveMaybeTeleport(obj2, w2, 0.4)
+		obj1 = moveMaybeTeleport(obj1, w1, 0.5)
+
+		glfw.PollEvents()
+		glfw.SwapBuffers("window")
+	}
+}
+
+func main () () {
+	var myWindow Window
+	myWindow = Window{
+		Height: 350,
+		Width: 500}
+
+	startGame(myWindow)
+}

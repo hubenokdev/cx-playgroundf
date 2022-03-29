@@ -1,0 +1,110 @@
+package main
+
+import "gl"
+import "glfw"
+
+var width i32 = 800
+var height i32 = 600
+var velocity f32 = 0.5
+
+type Ball struct {
+	x f32
+	y f32
+	vx f32
+	vy f32
+	gravity f32
+	radius f32
+}
+
+var ball Ball
+
+var prevTime f32
+var currTime f32
+var timeDelta f32
+func updateTiming() () {
+	// prevent 1st delta from being large, which would make moving objects teleport unpredictably 
+	if prevTime == 0.0 {
+		prevTime = f64.f32(glfw.GetTime())
+	}
+
+	currTime = f64.f32(glfw.GetTime())
+	timeDelta = currTime - prevTime
+	prevTime = currTime
+}
+
+func drawBall (ball Ball) () {
+	var full_angle f32
+	full_angle = f32.mul(2.0, 3.141592654)
+	var x f32
+	var y f32
+
+	gl.Begin(gl.POLYGON)
+	gl.Color3f(1.0, 1.0, 1.0)
+
+	var i f32
+	for i = 0.0; f32.lt(i, 20.0); i = f32.add(i, 1.0) {
+		x = f32.add(ball.x, f32.mul(ball.radius, f32.cos(f32.div(f32.mul(i, full_angle), 20.0))))
+		y = f32.add(ball.y, f32.mul(ball.radius, f32.sin(f32.div(f32.mul(i, full_angle), 20.0))))
+
+		gl.Vertex2f(x, y)
+	}
+
+	gl.End()
+}
+
+func main () () {
+	glfw.Init()
+
+	glfw.CreateWindow("window", width, height, "Bouncing Ball")
+	glfw.MakeContextCurrent("window")
+	
+	gl.Init()
+	var program i32
+	program = gl.CreateProgram()
+	gl.LinkProgram(program)
+
+	ball = Ball{
+		radius: 0.05,
+		x: 0.0,
+		y: 0.0,
+		vx: velocity,
+		vy: velocity,
+		gravity: 8.0}
+
+	for bool.not(glfw.ShouldClose("window")) {
+		updateTiming()
+
+		gl.Clear(gl.COLOR_BUFFER_BIT)
+
+		gl.UseProgram(program)
+		
+		gl.MatrixMode(gl.PROJECTION)
+		gl.LoadIdentity()
+		gl.MatrixMode(gl.MODELVIEW)
+
+		// move ball 
+		ball.x = f32.add(ball.x, ball.vx * timeDelta)
+		ball.y = f32.add(ball.y, ball.vy * timeDelta)
+
+		if f32.lteq(f32.sub(ball.y, ball.radius), -1.0) { // (touched bottom) 
+			// bounce up 
+			ball.vy = f32.abs(ball.vy)
+		} else {
+			// decrease y velocity 
+			ball.vy = ball.vy - ball.gravity * timeDelta
+		}
+
+		if f32.gteq(f32.add(ball.x, ball.radius), 1.0) { // (touched right edge) 
+			ball.vx = 0.0 - velocity
+		}
+
+		if f32.lteq(f32.sub(ball.x, ball.radius), -1.0) { // (touched left edge) 
+			ball.vx = velocity
+		}
+
+		drawBall(ball)
+		
+		glfw.PollEvents()
+		glfw.SwapBuffers("window")
+	}
+}

@@ -1,0 +1,108 @@
+package main
+
+var goNorth i32 = 1
+var goSouth i32 = 2
+var goWest i32 = 3
+var goEast i32 = 4
+
+func map2Dto1D (r i32, c i32, w i32) (i i32) {
+	i = w * r + c
+}
+
+func map1Dto2D (i i32, w i32) (r i32, c i32) {
+	r = i / W
+	c = i % W
+}
+
+func robot (row i32, col i32, action i32) (r i32, c i32) {
+	if action == 1 {
+		r = row - 1
+		c = col
+	}
+	if action == 2 {
+		r = row + 1
+		c = col
+	}
+	if action == 3 {
+		c = col - 1
+		r = row
+	}
+	if action == 4 {
+		c = col + 1
+		r = row
+	}
+}
+
+func getRules (row i32, col i32, width i32, wallMap [25]bool, wormholeMap [25]bool) (rules aff) {
+	rules ->= allow(* == *)
+	
+	if wallMap[map2Dto1D(row - 1, col, width)] {
+		rules ->= ->{reject(* == 1)}
+	}
+
+	if wallMap[map2Dto1D(row + 1, col, width)] {
+		rules ->= ->{reject(* == 2)}
+	}
+
+	if wallMap[map2Dto1D(row, col + 1, width)] {
+		rules ->= ->{reject(* == 3)}
+	}
+
+	if wallMap[map2Dto1D(row, col - 1, width)] {
+		rules ->= ->{reject(* == 3)}
+	}
+
+	if wormholeMap[map2Dto1D(row - 1, col, width)] {
+		rules ->= ->{allow(* == 1)}
+	}
+
+	if wormholeMap[map2Dto1D(row + 1, col, width)] {
+		rules ->= ->{allow(* == 2)}
+	}
+
+	if wormholeMap[map2Dto1D(row, col + 1, width)] {
+		rules ->= ->{allow(* == 3)}
+	}
+
+	if wormholeMap[map2Dto1D(row, col - 1, width)] {
+		rules ->= ->{allow(* == 3)}
+	}
+}
+
+func main () (out str) {
+	var wallMap [25]bool = [25]bool{
+		true, true,  true,  true,  true,
+		true, false, true, false, true,
+		true, false, true, false, true,
+		true, false, false, false, true,
+		true, true,  true,  true,  true}
+
+	var wormholeMap [25]bool = [25]bool{
+		false, false, false, false, false,
+		false, false, false, false, false,
+		false, false, false, false, false,
+		false, false, false, false, false,
+		false, false, false, false, false}
+
+	var width i32 = 5
+	var row i32 = 1
+	var col i32 = 1
+
+	var target aff
+	var rules aff
+
+	target = ->{pkg(main) fn(main) exp(robot)}	
+
+	for c := 0; c < 6; c++ {
+		wallMap[map2Dto1D(row, col, width)] = true
+		wormholeMap[map2Dto1D(row, col, width)] = false
+		rules = getRules(row, col, width, wallMap, wormholeMap)
+
+		affs := aff.query(target, rules)
+		aff.execute(target, affs, 0)
+	robot:
+		row, col = robot(row, col, 1)
+	}
+	
+	str.print("done.")
+}

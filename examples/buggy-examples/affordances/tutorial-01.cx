@@ -1,0 +1,112 @@
+package main
+import "aff"
+
+func exprPredicate (expr aff.Expression) (res bool) {
+   	if expr.Operator == "i32.add" {
+  		res = true
+  	}
+}
+
+func fnPredicate (fn aff.Function) (res bool) {
+  	str.print(fn.Name)
+  	i32.print(len(fn.InputSignature))
+	
+  	var allI32 bool
+  	allI32 = true
+  	for c := 0; c < len(fn.InputSignature); c++ {
+  		printf("Input Signature: %s\n", fn.InputSignature[c])
+  		if fn.InputSignature[c] != "i32" {
+  			allI32 = false
+  		}
+  	}
+	
+  	if (len(fn.InputSignature) == 2 && allI32) {
+  		res = true
+  	}
+}
+
+func prgrmPredicate (prgrm aff.Program) (res bool) {
+	// var call aff.Caller
+
+	str.print("=======")
+	str.print(prgrm.Caller.FnName)
+	i32.print(prgrm.Caller.FnSize)
+	str.print("=======")
+	
+  	if prgrm.HeapUsed > 300L {
+  		res = true
+  	}
+}
+
+func callerPredicate (call aff.Caller) (res bool) {
+  	if call.FnName == "main.bar" && call.FnSize == 0 {
+  		res = true
+  	}
+}
+
+func foo () {
+  	fltrs := ->{
+		filter(prgrmPredicate)
+		// filter(callerPredicate)
+  	}
+  	affs := aff.query(fltrs)
+  	if len(affs) < 1 {
+  		return
+  	}
+	
+  	str.print("SECRET")
+}
+
+func bar () {
+  	foo()
+}
+
+func foobar (num1 i32, num2 i32) (res i32) {
+	res = num1 * num2 + num1
+}
+
+type Coco struct {
+	name str
+}
+
+func main () {
+	// var coco Coco
+	// str.print(coco.name)
+
+	
+  	num0 := 2
+  	num1 := 5
+  	num2 := 10
+  	
+targetExpr:
+  	sum := i32.add(0, 0)
+  	
+  	tgt := ->{
+  		pkg(main)
+  		fn(main)
+  		expr(targetExpr)
+  	}
+	
+  	fltrs := ->{
+  		filter(exprPredicate)
+  		filter(prgrmPredicate)
+  		filter(callerPredicate)
+  		filter(fnPredicate)
+  	}
+	
+  	aff.print(tgt)
+  	aff.print(fltrs)
+	
+  	affs := aff.query(fltrs)
+	
+  	aff.print(affs)
+  	
+  	foo()
+  	bar()
+	
+  	aff.on(affs, tgt)
+  	aff.of(affs, tgt)
+	
+  	aff.inform(affs, 0, tgt)
+  	aff.request(affs, 0, tgt)
+}
