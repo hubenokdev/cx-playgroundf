@@ -19,5 +19,6 @@ before_install:
 
 # Push image to dockerhub
 after_success:
+ - docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD}
  - docker tag ${IMGNAME} ${DOCKER_HUB_PROJECT}:latest
  - docker push ${DOCKER_HUB_PROJECT}:latest
