@@ -23,6 +23,7 @@ WORKDIR /var/cxplayground
 
 COPY --from=build /build/examples /var/cxplayground/examples
 COPY --from=build /build/cxplayground /var/cxplayground/cxplayground
+COPY dist /var/cxplayground/dist
 
 EXPOSE 5336
 
