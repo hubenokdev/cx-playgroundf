@@ -75,4 +75,22 @@ $().ready(function () {
             }
         });
     });
+    $("#ast").click(function () {
+        var data = {
+            "code": editor.getSession().getValue()
+        };
+        $.ajax({
+            type: "POST",
+            url: "/showast",
+            contentType: "application/json;charset=utf-8",
+            data: JSON.stringify(data),
+            cache: false,
+            success: function (message) {
+                editorid_export.getSession().setValue(message)
+            },
+            error: function (message) {
+                editorid_export.getSession().setValue(message)
+            }
+        });
+    });
 });

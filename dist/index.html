@@ -7,11 +7,20 @@
 </head>
 
 <body>
-    <div class="header">Playground
+    <div class="header">
+        <h1>CX Playground</h1>
+    </div>
+    <br>
+    <div class="control">
         <select class="shortselect placeholder" id="list">
             <option value="hello">Hello, World</option>
         </select>
-        <input class="run-button" value="run" type="button" id="run">
+        <input class="main-button" value="show AST" type="button" id="ast">
+        |
+        <input class="main-button" value="run" type="button" id="run">
+        |
+        <input class="main-button" value="start debug" type="button" id="start">
+        <input class="main-button" value="stop debug" type="button" id="stop">
     </div>
     <div class="wrapper">
         <code id="ace-editorid"></code>
