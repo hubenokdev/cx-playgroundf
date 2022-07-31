@@ -23,6 +23,7 @@ func main() {
 	http.Handle("/", http.FileServer(http.Dir("./dist")))
 	http.Handle("/program/", webapi.NewAPI("/program", actions.AST))
 	http.HandleFunc("/eval", playground.RunProgram)
+	http.HandleFunc("/showast", playground.ShowAst)
 
 	fmt.Println("Starting web service for CX playground on http://127.0.0.1:5336/")
 

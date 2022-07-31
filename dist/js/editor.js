@@ -8,6 +8,35 @@ editor.getSession().setTabSize(4);
 editor.session.setUseSoftTabs(true);
 editor.getSession().setUseWrapMode(true);
 
+// breakpoints
+editor.on("guttermousedown", function(e) {
+    var target = e.domEvent.target;
+
+    if (target.className.indexOf("ace_gutter-cell") == -1){
+        return;
+    }
+
+    if (!editor.isFocused()){
+        return; 
+    }
+
+    if (e.clientX > 25 + target.getBoundingClientRect().left){
+        return;
+    }
+
+    var breakpoints = e.editor.session.getBreakpoints(row, 0);
+    var row = e.getDocumentPosition().row;
+
+    // If there's a breakpoint already defined, it should be removed, offering the toggle feature
+    if(typeof breakpoints[row] === typeof undefined){
+        e.editor.session.setBreakpoint(row);
+    }else{
+        e.editor.session.clearBreakpoint(row);
+    }
+
+    e.stop();
+});
+
 // export
 var editorid_export = ace.edit('editorid_export');
 editorid_export.setTheme(theme);

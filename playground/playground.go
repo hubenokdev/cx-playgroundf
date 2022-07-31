@@ -133,6 +133,27 @@ func RunProgram(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%s", eval(source.Code+"\n"))
 }
 
+func ShowAst(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	var b []byte
+	var err error
+	if b, err = ioutil.ReadAll(r.Body); err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	var source SourceCode
+	if err := json.Unmarshal(b, &source); err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	err = r.ParseForm()
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+	fmt.Fprintf(w, "%s", ast(source.Code+"\n"))
+}
+
 func unsafeeval(code string) (out string) {
 	var lexer *cxparsingcompletor.Lexer
 	defer func() {
@@ -268,7 +289,7 @@ func getAST(code string) (out string) {
 	return out
 }
 
-func showast(code string) string {
+func ast(code string) string {
 	runtime.GOMAXPROCS(2)
 	ch := make(chan string, 1)
 
