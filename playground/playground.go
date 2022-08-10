@@ -133,6 +133,27 @@ func RunProgram(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%s", eval(source.Code+"\n"))
 }
 
+func ShowAst(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	var b []byte
+	var err error
+	if b, err = ioutil.ReadAll(r.Body); err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	var source SourceCode
+	if err := json.Unmarshal(b, &source); err != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+
+	err = r.ParseForm()
+	if err != nil {
+		http.Error(w, err.Error(), 500)
+	}
+	fmt.Fprintf(w, "%s", ast(source.Code+"\n"))
+}
+
 func unsafeeval(code string) (out string) {
 	var lexer *cxparsingcompletor.Lexer
 	defer func() {
@@ -199,6 +220,83 @@ func eval(code string) string {
 
 	go func() {
 		result = unsafeeval(code)
+		ch <- result
+	}()
+
+	timer := time.NewTimer(20 * time.Second)
+	defer timer.Stop()
+
+	select {
+	case <-ch:
+		return result
+	case <-timer.C:
+		actions.AST = cxinit.MakeProgram()
+		return "Timed out."
+	}
+}
+
+func getAST(code string) (out string) {
+	var lexer *cxparsingcompletor.Lexer
+	defer func() {
+		if r := recover(); r != nil {
+			out = fmt.Sprintf("%v", r)
+			actions.AST = cxinit.MakeProgram()
+			return
+		}
+	}()
+
+	// storing strings sent to standard output
+	old := os.Stdout
+	r, w, err := os.Pipe()
+	if err != nil {
+		return fmt.Sprintf("%v", err)
+	}
+	os.Stdout = w
+
+	actions.LineNo = 0
+	// Load op code tables
+	// Initialized cx program
+	parsingcompletor.InitCXCore()
+
+	// PassOne
+	cxpartialparsing.Program = actions.AST
+	cxpartialparsing.Parse(code)
+	actions.AST = cxpartialparsing.Program
+
+	// PassTwo
+	lexer = cxparsingcompletor.NewLexer(bytes.NewBufferString(code))
+	cxparsingcompletor.Parse(lexer)
+
+	err = cxparsing.AddInitFunction(actions.AST)
+	if err != nil {
+		return fmt.Sprintf("%s", err)
+	}
+
+	actions.AST.PrintProgram()
+
+	outC := make(chan string)
+	go func() {
+		var buf bytes.Buffer
+		io.Copy(&buf, r)
+		outC <- buf.String()
+	}()
+
+	w.Close()
+	os.Stdout = old // restoring the real stdout
+	out = <-outC
+
+	actions.AST = cxinit.MakeProgram()
+	return out
+}
+
+func ast(code string) string {
+	runtime.GOMAXPROCS(2)
+	ch := make(chan string, 1)
+
+	var result string
+
+	go func() {
+		result = getAST(code)
 		ch <- result
 	}()
 

@@ -7,15 +7,35 @@
 </head>
 
 <body>
-    <div class="header">Playground
-        <select class="shortselect placeholder" id="list">
-            <option value="hello">Hello, World</option>
-        </select>
-        <input class="run-button" value="run" type="button" id="run">
+    <div class="main-contents">
+        <div class="header">
+            <h1>CX Playground</h1>
+        </div>
+        <br>
+        <div class="control">
+            <select class="shortselect placeholder" id="list">
+                <option value="hello">Hello, World</option>
+            </select>
+            <input class="main-button" value="show AST" type="button" id="ast">
+            |
+            <input class="main-button" value="run" type="button" id="run">
+            |
+            <input class="main-button" value="start debug" type="button" id="start">
+            <input class="main-button" value="stop debug" type="button" id="stop">
+        </div>
+        <div class="wrapper">
+            <code id="ace-editorid"></code>
+            <pre id="editorid_export"></pre>
+        </div>
     </div>
-    <div class="wrapper">
-        <code id="ace-editorid"></code>
-        <pre id="editorid_export"></pre>
+    <div class="footer">
+        <footer>
+            <ul class="link-list">
+                <li class="link-list-item"><a href="https://www.skycoin.com/">About Skycoin</a></li>
+                <li class="link-list-item"><a href="https://www.skycoin.com/cx/docs/">CX Docs</a></li>
+                <li class="link-list-item"><a href="https://github.com/skycoin/cx">CX Github</a></li>
+            </ul>
+        </footer>
     </div>
 </body>
 <script src='https://cdnjs.cloudflare.com/ajax/libs/ace/1.1.3/ace.js'></script>
