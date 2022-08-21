@@ -62,6 +62,12 @@ var InitPlayground = func(workingDir string) error {
 	return nil
 }
 
+func timeTrack(start time.Time, w http.ResponseWriter) {
+	elapsed := time.Since(start)
+	fmt.Fprintf(w, "%s", "\n")
+	fmt.Fprintf(w, "%s", elapsed)
+}
+
 func GetExampleFileList(w http.ResponseWriter, r *http.Request) {
 
 	exampleNamesBytes, err := json.Marshal(exampleNames)
@@ -130,6 +136,7 @@ func RunProgram(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 	}
+	defer timeTrack(time.Now(), w)
 	fmt.Fprintf(w, "%s", eval(source.Code+"\n"))
 }
 

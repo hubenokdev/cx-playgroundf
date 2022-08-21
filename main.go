@@ -14,7 +14,7 @@ func main() {
 	workingDir, _ := os.Getwd()
 	if err := playground.InitPlayground(workingDir); err != nil {
 		// error captured while initiating the playground examples, should be handled in the future
-		fmt.Println("Fail to initiating palyground examples")
+		fmt.Println("Fail to initiating playground examples")
 	}
 
 	http.HandleFunc("/playground/examples", playground.GetExampleFileList)
