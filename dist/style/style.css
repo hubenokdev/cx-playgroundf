@@ -30,7 +30,7 @@ h1 {
 }
 
 .wrapper {
-  z-index: -1;
+  z-index: 0;
   position: relative;
   height: 65%;
 }
