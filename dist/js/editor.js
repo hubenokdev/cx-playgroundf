@@ -103,6 +103,13 @@ $().ready(function () {
                 editorid_export.getSession().setValue(message)
             }
         });
+        $.ajax({
+            type:    "POST",
+            url:     "/mem",
+            success: function (data) {
+                $("#memory_status").html(data)
+            }
+        });
     });
     $("#ast").click(function () {
         var data = {
