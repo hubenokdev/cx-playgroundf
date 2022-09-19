@@ -14,7 +14,7 @@ func main() {
 	workingDir, _ := os.Getwd()
 	if err := playground.InitPlayground(workingDir); err != nil {
 		// error captured while initiating the playground examples, should be handled in the future
-		fmt.Println("Fail to initiating palyground examples")
+		fmt.Println("Fail to initiating playground examples")
 	}
 
 	http.HandleFunc("/playground/examples", playground.GetExampleFileList)
@@ -23,6 +23,7 @@ func main() {
 	http.Handle("/", http.FileServer(http.Dir("./dist")))
 	http.Handle("/program/", webapi.NewAPI("/program", actions.AST))
 	http.HandleFunc("/eval", playground.RunProgram)
+	http.HandleFunc("/mem", playground.GetMemStatus)
 	http.HandleFunc("/showast", playground.ShowAst)
 
 	fmt.Println("Starting web service for CX playground on http://127.0.0.1:5336/")

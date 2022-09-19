@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"time"
 
 	"github.com/skycoin/cx/cx/execute"
@@ -60,6 +61,12 @@ var InitPlayground = func(workingDir string) error {
 	}
 
 	return nil
+}
+
+func timeTrack(start time.Time, w http.ResponseWriter) {
+	elapsed := time.Since(start)
+	fmt.Fprintf(w, "%s", "\n")
+	fmt.Fprintf(w, "%s", elapsed)
 }
 
 func GetExampleFileList(w http.ResponseWriter, r *http.Request) {
@@ -130,6 +137,7 @@ func RunProgram(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), 500)
 	}
+	defer timeTrack(time.Now(), w)
 	fmt.Fprintf(w, "%s", eval(source.Code+"\n"))
 }
 
@@ -310,4 +318,11 @@ func ast(code string) string {
 		actions.AST = cxinit.MakeProgram()
 		return "Timed out."
 	}
+}
+
+func GetMemStatus(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	var m runtime.MemStats
+	runtime.ReadMemStats(&m)
+	fmt.Fprintf(w, "%s", strconv.FormatUint(m.HeapAlloc/1049000, 10)+"Mb Allocated / "+strconv.FormatUint(m.Sys/1049000, 10)+"Mb Reserved")
 }
