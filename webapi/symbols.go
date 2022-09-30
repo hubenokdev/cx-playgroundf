@@ -43,7 +43,7 @@ func extractExportedSymbols(prgrm *ast.CXProgram, pkg *ast.CXPackage) ExportedSy
 	resp := ExportedSymbolsResp{
 		Functions: make([]ExportedSymbol, 0, len(pkg.Functions)),
 		Structs:   make([]ExportedSymbol, 0, len(pkg.Structs)),
-		Globals:   make([]ExportedSymbol, 0, len(pkg.Globals)),
+		Globals:   make([]ExportedSymbol, 0, len(pkg.Globals.Fields)),
 	}
 
 	for _, fIdx := range pkg.Functions {
@@ -54,16 +54,18 @@ func extractExportedSymbols(prgrm *ast.CXProgram, pkg *ast.CXPackage) ExportedSy
 		}
 	}
 
-	for _, s := range pkg.Structs {
-		if isExported(s.Name) {
-			resp.Structs = append(resp.Structs, displayCXStruct(prgrm, s))
+	for _, sIdx := range pkg.Structs {
+		strct := &prgrm.CXStructs[sIdx]
+		if isExported(strct.Name) {
+			resp.Structs = append(resp.Structs, displayCXStruct(prgrm, strct))
 		}
 	}
 
-	for _, gIdx := range pkg.Globals {
-		g := prgrm.GetCXArg(gIdx)
-		if isExported(g.Name) {
-			resp.Globals = append(resp.Globals, displayCXGlobal(g))
+	for _, gIdx := range pkg.Globals.Fields {
+		typeSigGlobal := prgrm.GetCXTypeSignatureFromArray(gIdx)
+
+		if isExported(typeSigGlobal.Name) {
+			resp.Globals = append(resp.Globals, displayCXGlobal(prgrm, typeSigGlobal))
 		}
 	}
 
@@ -88,12 +90,32 @@ func displayCXStruct(prgrm *ast.CXProgram, s *ast.CXStruct) ExportedSymbol {
 	}
 }
 
-func displayCXGlobal(a *ast.CXArgument) ExportedSymbol {
+func displayCXGlobal(prgrm *ast.CXProgram, glbl *ast.CXTypeSignature) ExportedSymbol {
+	glblType := types.Code(1)
+
+	switch glbl.Type {
+	case ast.TYPE_ATOMIC:
+		glblType = types.Code(glbl.Meta)
+	case ast.TYPE_POINTER_ATOMIC:
+		glblType = types.Code(glbl.Meta)
+	case ast.TYPE_ARRAY_ATOMIC:
+		arrDetails := prgrm.GetCXTypeSignatureArrayFromArray(glbl.Meta)
+		glblType = types.Code(arrDetails.Type)
+	case ast.TYPE_POINTER_ARRAY_ATOMIC:
+		arrDetails := prgrm.GetCXTypeSignatureArrayFromArray(glbl.Meta)
+		glblType = types.Code(arrDetails.Type)
+	case ast.TYPE_SLICE_ATOMIC:
+		arrDetails := prgrm.GetCXTypeSignatureArrayFromArray(glbl.Meta)
+		glblType = types.Code(arrDetails.Type)
+	case ast.TYPE_CXARGUMENT_DEPRECATE:
+		arg := prgrm.GetCXArgFromArray(ast.CXArgumentIndex(glbl.Meta))
+		glblType = arg.Type
+	}
 	return ExportedSymbol{
-		Name:      a.Name,
+		Name:      glbl.Name,
 		Signature: nil,
-		Type:      a.Type,
-		TypeName:  a.Type.Name(),
+		Type:      glblType,
+		TypeName:  glblType.Name(),
 	}
 }
 
