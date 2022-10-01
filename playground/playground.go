@@ -22,6 +22,9 @@ import (
 	cxinit "github.com/skycoin/cx/cx/init"
 	cxparsingcompletor "github.com/skycoin/cx/cxparser/cxparsingcompletor"
 	cxpartialparsing "github.com/skycoin/cx/cxparser/cxpartialparsing"
+
+	"github.com/skycoin/cx/cx/types"
+	cxast "github.com/skycoin/cx/cx/ast"
 )
 
 var (
@@ -35,6 +38,8 @@ type ExampleContent struct {
 }
 
 var InitPlayground = func(workingDir string) error {
+	types.Allocator = cxast.AllocateSeq
+	
 	examplesDir = filepath.Join(workingDir, "./examples")
 	exampleCollection = make(map[string]string)
 
